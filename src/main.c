@@ -5,7 +5,7 @@
 
 #include "delay.h"
 #include "stdio.h"
-#include "../lib/uart.c"*/
+//#include "../lib/uart.c"*/
 #include  "assert.h"
 
 #define _ISOC99_SOURCE
@@ -29,6 +29,17 @@
 #define BRANA_START GPIO_ReadInputPin(START_PORT, START_PIN)
 #define BRANA_KONEC GPIO_ReadInputPin(KONEC_PORT, KONEC_PIN)
 
+uint32_t time1 = 0;
+uint32_t time2 = 0;
+uint32_t time3 = 0;
+uint32_t time4 = 0;
+uint32_t time5 = 0;
+uint32_t cas = 0;
+uint32_t milisekundy = 0;
+uint32_t sekundy = 0;
+_Bool casovac = 0;
+char text[32];
+
 
 void setup(void)
 {
@@ -36,7 +47,7 @@ void setup(void)
     GPIO_Init(LED_PORT, LED_PIN, GPIO_MODE_OUT_PP_LOW_SLOW);
     GPIO_Init(BTN_PORT, BTN_PIN, GPIO_MODE_IN_FL_NO_IT);
     GPIO_Init(START_PORT, START_PIN, GPIO_MODE_IN_FL_NO_IT);
-    GPIO_Init(KONEC_PORT, KONEC_PIN GPIO_MODE_IN_FL_NO_IT);
+    GPIO_Init(KONEC_PORT, KONEC_PIN, GPIO_MODE_IN_FL_NO_IT);
     lcd_init();
     init_milis();
     
@@ -48,47 +59,38 @@ uint32_t stopky(void){
         sekundy++;
     }
     if (cas - milis() >= 1){
-        ms++;
-        if (ms == 1000){
-            ms=0;
+        milisekundy++;
+        if (milisekundy == 1000){
+            milisekundy=0;
         }
     }
-    lcd_gotoxy(0,0)
-    sprintf(text,"Čas: %2u",sekundy)
-    lcd_puts(text)
-    lcd_gotoxy(0,6)
-    sprintf(text,":%3u",ms)
+    lcd_gotoxy(0,0);
+    sprintf(text,"Čas: %2u",sekundy);
+    lcd_puts(text);
+    lcd_gotoxy(0,6);
+    sprintf(text,":%3u",milisekundy);
 
 }
 
-int main(void)
+void main(void)
 {
-    uint32_t time1 = 0;
-    uint32_t time2 = 0;
-    uint32_t time3 = 0;
-    uint32_t time4 = 0;
-    uint32_t time5 = 0;
-    uint32_t cas = 0;
-    uint32_t ms = 0;
-    uint32_t sekundy = 0;
-    _Bool casovac = 0;
-    char text[32];
+  
     setup();
 
     while (1) {
 
         if (BRANA_START && milis()-time1 > 200){
-           casovac=1     
+           casovac=1;  
         }
         if (BRANA_KONEC && milis()-time2 > 5){
-            casovac=0
+            casovac=0;
         }
         if (casovac==1 && milis()-time3 > 5){
             stopky();
         }
         if (BTN_PUSH && milis()-time4 > 200 ){
             sekundy = 0;
-            ms = 0; 
+            milisekundy = 0; 
         }
         if (milis()-time5 > 500)
             lcd_clear();
