@@ -27,31 +27,15 @@ STLINK=stlinkv21
 
 F_CPU=16000000
 
-CP = cp
+
 MKDIR = mkdir
-
-ifeq ($(findstring 2019, $(shell openocd --version 2>&1)), 2019)
-    interface = interface/stlink.cfg
-else
-    interface = interface/stlink-dap.cfg
-endif
-ifeq ($(findstring 003, $(DEVICE)), 003)
-	target = target/stm8s003.cfg
-else ifeq ($(findstring 103, $(DEVICE)), 103)
-	target = target/stm8s103.cfg
-else ifeq ($(findstring 105, $(DEVICE)), 105)
-	target = target/stm8s105.cfg
-else
-	target = target/stm8s.cfg
-endif
-OPENOCD = openocd -f .make/stm8s-flash.cfg -f $(interface) -f $(target)
-
 ifeq ($(OS),Windows_NT)
     uname_S := Windows
 
 	CC_ROOT = "/c/Program Files/SDCC"
 	CC = $(CC_ROOT)/bin/sdcc
 	LN = cp
+	OPENOCD = openocd -f .make/stm8s-flash.cfg -f interface/stlink.cfg -f target/stm8s.cfg
 	PYTHON = python
 else
     uname_S := $(shell uname -s)
@@ -59,8 +43,10 @@ else
 	CC_ROOT = /usr/
 	CC = $(CC_ROOT)/bin/sdcc
 	LN = ln -sf
+	OPENOCD = openocd -f .make/stm8s-flash.cfg -f interface/stlink-dap.cfg -f target/stm8s.cfg
 	PYTHON = python3
 endif
+CP = cp
 
 # trap handling requires SDCC >=v3.4.3
 SKIP_TRAPS = 1
@@ -90,7 +76,6 @@ PRJ_INC_DIR = $(PRJ_ROOT)/inc
 # all project sources included by default
 PRJ_SOURCE  = $(notdir $(wildcard $(PRJ_SRC_DIR)/*.c))
 PRJ_OBJECTS := $(addprefix $(OUTPUT_DIR)/, $(PRJ_SOURCE:.c=.rel))
-PRJ_INCS  = $(wildcard $(PRJ_INC_DIR)/*.h)
 
 # set SPL paths
 #SPL_SRC_DIR = /usr/local/lib/stm8/src/
@@ -104,9 +89,9 @@ SPL_SOURCE  = stm8s_gpio.c stm8s_clk.c stm8s_tim4.c stm8s_itc.c
 SPL_SOURCE += stm8s_uart1.c
 SPL_SOURCE += stm8s_adc2.c
 SPL_SOURCE += stm8s_flash.c
-#SPL_SOURCE += stm8s_tim1.c
-#SPL_SOURCE += stm8s_tim2.c
-#SPL_SOURCE += stm8s_tim3.c
+SPL_SOURCE += stm8s_tim1.c
+SPL_SOURCE += stm8s_tim2.c
+SPL_SOURCE += stm8s_tim3.c
 #SPL_SOURCE  = $(notdir $(wildcard $(SPL_SRC_DIR)/*.c))
 SPL_OBJECTS := $(addprefix $(OUTPUT_DIR)/, $(SPL_SOURCE:.c=.rel))
 
@@ -136,7 +121,7 @@ $(TARGET).ihx: $(PRJ_OBJECTS) $(SPL_OBJECTS)
 	@$(PYTHON) .make/sizecal.py ./out.ihx
 	@echo
 
-$(OUTPUT_DIR)/%.rel: %.c $(PRJ_INCS) Makefile | $(OUTPUT_DIR)
+$(OUTPUT_DIR)/%.rel: %.c Makefile | $(OUTPUT_DIR)
 	$(CC) $(CFLAGS) $(FMT_ELF) -D$(DEVICE) $(INCLUDE) -DSKIP_TRAPS=$(SKIP_TRAPS) -c $< -o $@
 
 $(OUTPUT_DIR):
@@ -169,10 +154,12 @@ debug: $(TARGET).elf
 	stm8-gdb --tui $^
 
 
+switch-sdcc::
+	$(LN) .make/Makefile-sdcc     Makefile
 switch-sdcc-gas::
-	$(LN) .make/Makefile-sdcc-gas Makefile || $(CP) .make/Makefile-sdcc-gas Makefile
+	$(LN) .make/Makefile-sdcc-gas Makefile
 switch-sdccrm:
-	$(LN) .make/Makefile-sdccrm Makefile || $(CP) .make/Makefile-sdccrm Makefile
+	$(LN) .make/Makefile-sdccrm Makefile
 
 spl::
 	bash .make/spl.sh
