@@ -26,6 +26,11 @@
 #define BRANA_PIN GPIO_PIN_1
 #define BRANA GPIO_ReadInputPin(BRANA_PORT, BRANA_PIN)
 
+#define VYCHOD_PORT GPIOB
+#define VYCHOD_PIN GPIO_PIN_0
+#define VYCHOD GPIO_ReadInputPin(VYCHOD_PORT, VYCHOD_PIN)
+
+
 #define BZUCAK_PORT GPIOB
 #define BZUCAK_PIN GPIO_PIN_3
 #define bzuci GPIO_WriteHigh(BZUCAK_PORT, BZUCAK_PIN)
@@ -33,9 +38,13 @@
 
 uint32_t time1 = 0;
 uint32_t time2 = 0;
+uint32_t time3 = 0;
 _Bool aktualni = 0;
 _Bool minuly = 0;
+_Bool aktualni_e = 0;
+_Bool minuly_e = 0;
 _Bool zmena = 0;
+_Bool zmena_e = 0;
 uint8_t pocet = 0;
 
 
@@ -45,6 +54,7 @@ void setup(void)
     GPIO_Init(LED_PORT, LED_PIN, GPIO_MODE_OUT_PP_LOW_SLOW);
     GPIO_Init(BTN_PORT, BTN_PIN, GPIO_MODE_IN_FL_NO_IT);
     GPIO_Init(BRANA_PORT, BRANA_PIN, GPIO_MODE_IN_FL_NO_IT);
+    GPIO_Init(VYCHOD_PORT, VYCHOD_PIN, GPIO_MODE_IN_FL_NO_IT);
     GPIO_Init(BZUCAK_PORT, BZUCAK_PIN, GPIO_MODE_OUT_PP_LOW_SLOW);
     init_milis();
     
@@ -71,13 +81,41 @@ int main(void)
         }
         minuly = aktualni;
         }
-        if (zmena==1 && milis()-time2 > 150){
+
+        if (milis() - time3 > 10){
+            time3=milis();
+            if(VYCHOD){
+                aktualni_e=1;
+            }else{
+                aktualni_e=0;
+            }
+        if (minuly_e==1 && aktualni_e==0){
+            minuly_e=0;
+            pocet--;
+            zmena_e=1;
+        }
+        minuly_e = aktualni_e;
+        }
+        if (milis()-time2 > 150){
             time2 = milis();
-            //prinf("Počet: %ld \n \r",pocet);
-            bzuci;
-            delay_ms(200);
-            nebzuci;
-            zmena=0;
+            if(zmena==1){
+                //prinf("Počet: %ld \n \r",pocet);
+                bzuci;
+                delay_ms(200);
+                nebzuci;
+                zmena=0;
+            }
+            if(zmena_e==1){
+                //prinf("Počet: %ld \n \r",pocet);
+                bzuci;
+                delay_ms(200);
+                nebzuci;
+                delay_ms(100);
+                bzuci;
+                delay_ms(200);
+                nebzuci;
+                zmena_e=0;
+            }
         }
         if (BTN_PUSH){
             pocet=0;
