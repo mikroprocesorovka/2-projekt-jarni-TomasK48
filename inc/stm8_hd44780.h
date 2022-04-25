@@ -75,17 +75,17 @@
 #define LCD_E_PORT      GPIOF
 #define LCD_E_PIN   GPIO_PIN_5
 
-#define LCD_D4_PORT     GPIOG
-#define LCD_D4_PIN  GPIO_PIN_0
+#define LCD_D4_PORT     GPIOF
+#define LCD_D4_PIN  GPIO_PIN_4
 
-#define LCD_D5_PORT     GPIOG
-#define LCD_D5_PIN  GPIO_PIN_1
+#define LCD_D5_PORT     GPIOF
+#define LCD_D5_PIN  GPIO_PIN_3
 
-#define LCD_D6_PORT     GPIOG
-#define LCD_D6_PIN  GPIO_PIN_2
+#define LCD_D6_PORT     GPIOF
+#define LCD_D6_PIN  GPIO_PIN_0
 
-#define LCD_D7_PORT     GPIOG
-#define LCD_D7_PIN  GPIO_PIN_3
+#define LCD_D7_PORT     GPIOD
+#define LCD_D7_PIN  GPIO_PIN_2
 
 // define only if powering LCD from GPIO (feature for low power applications)
 #ifdef USE_POWER_PIN
